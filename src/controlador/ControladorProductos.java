@@ -31,8 +31,8 @@ public class ControladorProductos implements ActionListener{
         
         //variables locales
     String nombre, tipo;
-    double precio=0;
-    int dias, cantidadProductosPerecederos=0, cantidadProductosNoPerecederos=0, cantidad=0;    
+    double precio=0, totalAPagar=0;
+    int dias, cantidadProductosPerecederos=0, cantidadProductosNoPerecederos=0, cantidad=0, cantidadTotalDeProductos=0;    
          
     public ControladorProductos(Perecederos moPed, NoPerecederos moNoPed, VistaProductos vi) {
         this.moPed = moPed;
@@ -79,6 +79,7 @@ public class ControladorProductos implements ActionListener{
                                 vi.rbNoPerecedero.setEnabled(false);
                                 Perecederos miProductoPerecedero = new Perecederos(nombre, precio, cantidad, dias);
                                 miProductoPerecedero.calcular(cantidad);
+                                totalAPagar=totalAPagar+miProductoPerecedero.getTotalAPagar();
                                 misListaProductos.add(miProductoPerecedero);
                                 vi.btnGuardar.setEnabled(false);                    
                                 cantidadProductosPerecederos++;                                       
@@ -91,14 +92,21 @@ public class ControladorProductos implements ActionListener{
                                 //System.out.println("voy bien");
                                 NoPerecederos miProductoNoPerecedero = new NoPerecederos(nombre, precio, cantidad, tipo);
                                 miProductoNoPerecedero.calcular(cantidad);
+                                totalAPagar=totalAPagar+miProductoNoPerecedero.getTotalAPagar();
                                 misListaProductos.add(miProductoNoPerecedero);                   
                                 vi.btnGuardar.setEnabled(false);                    
                                 cantidadProductosNoPerecederos++;                                                          
              }
+                                
+                                cantidadTotalDeProductos++;
                                 inhabilitarCampos();                        
                                 vi.btnNuevo.setEnabled(true);                          
                                 limpiarTabla();
                                 listarEnTabla();
+                                vi.lblCantidadPerecederos.setText(String.valueOf(cantidadProductosPerecederos));
+                                vi.lblCantidadNoPerecederos.setText(String.valueOf(cantidadProductosNoPerecederos));
+                                vi.lblTotalAPagar.setText(String.valueOf(totalAPagar));
+                                vi.lblCantidadTotal.setText(String.valueOf(cantidadTotalDeProductos));
                         }
                         
                                                                        
@@ -132,6 +140,7 @@ public class ControladorProductos implements ActionListener{
          vi.txtPrecioProducto.setEnabled(false);
          vi.txtCantidad.setEnabled(false);
          vi.jbxDias.setEnabled(false);
+         vi.jbxTipoDeProducto.setEnabled(false);
          vi.rbPerecedero.setEnabled(false);
          vi.rbNoPerecedero.setEnabled(false);                  
      }
@@ -144,6 +153,7 @@ public class ControladorProductos implements ActionListener{
          vi.rbNoPerecedero.setEnabled(true);  
          vi.btnGuardar.setEnabled(true);
          vi.jbxDias.setEnabled(true);
+           vi.jbxTipoDeProducto.setEnabled(true);
      }
     
      public void limpiarCampos(){
