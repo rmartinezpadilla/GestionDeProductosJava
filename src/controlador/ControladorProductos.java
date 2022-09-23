@@ -5,8 +5,17 @@
  */
 package controlador;
 
+import com.itextpdf.text.Chunk;
+import com.itextpdf.text.Document;
+import com.itextpdf.text.Font;
+import com.itextpdf.text.Paragraph;
+import com.itextpdf.text.pdf.PdfPCell;
+import com.itextpdf.text.pdf.PdfPTable;
+import com.itextpdf.text.pdf.PdfWriter;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.FileOutputStream;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
@@ -26,7 +35,7 @@ public class ControladorProductos implements ActionListener{
     private VistaProductos vi;
     
       // ArrayList de objetos productos. Idenpendientemente de la clase hija a la que pertenezca el objeto
-	public static ArrayList<ProductosModelo> misListaProductos = new ArrayList<ProductosModelo>();
+	public static ArrayList<ProductosModelo> miListaProductos = new ArrayList<ProductosModelo>();
         DefaultTableModel modeloTabla;
         
         //variables locales
@@ -43,6 +52,7 @@ public class ControladorProductos implements ActionListener{
         this.vi.btnGuardar.addActionListener(this);        
         this.vi.btnSalir.addActionListener(this);
         this.vi.btnNuevo.addActionListener(this);
+        this.vi.btnCrearPDF.addActionListener(this);
     }
    
     @Override
@@ -80,7 +90,7 @@ public class ControladorProductos implements ActionListener{
                                 Perecederos miProductoPerecedero = new Perecederos(nombre, precio, cantidad, dias);
                                 miProductoPerecedero.calcular(cantidad);
                                 totalAPagar=totalAPagar+miProductoPerecedero.getTotalAPagar();
-                                misListaProductos.add(miProductoPerecedero);
+                                miListaProductos.add(miProductoPerecedero);
                                 vi.btnGuardar.setEnabled(false);                    
                                 cantidadProductosPerecederos++;                                       
                         }else if (vi.rbNoPerecedero.isSelected()) {
@@ -93,14 +103,15 @@ public class ControladorProductos implements ActionListener{
                                 NoPerecederos miProductoNoPerecedero = new NoPerecederos(nombre, precio, cantidad, tipo);
                                 miProductoNoPerecedero.calcular(cantidad);
                                 totalAPagar=totalAPagar+miProductoNoPerecedero.getTotalAPagar();
-                                misListaProductos.add(miProductoNoPerecedero);                   
+                                miListaProductos.add(miProductoNoPerecedero);                   
                                 vi.btnGuardar.setEnabled(false);                    
                                 cantidadProductosNoPerecederos++;                                                          
              }
                                 
                                 cantidadTotalDeProductos++;
                                 inhabilitarCampos();                        
-                                vi.btnNuevo.setEnabled(true);                          
+                                vi.btnNuevo.setEnabled(true); 
+                                vi.btnCrearPDF.setEnabled(true);
                                 limpiarTabla();
                                 listarEnTabla();
                                 vi.lblCantidadPerecederos.setText(String.valueOf(cantidadProductosPerecederos));
@@ -113,6 +124,9 @@ public class ControladorProductos implements ActionListener{
             }
                         
                      
+        }else if (ae.getSource()== vi.btnCrearPDF) {
+           // crearPDF(nombre, precio, dias, totalAPagar);
+           crearPDFII(miListaProductos, totalAPagar);
         }
                         
        
@@ -170,11 +184,11 @@ public class ControladorProductos implements ActionListener{
          modeloTabla = (DefaultTableModel) vi.tblMiTabla.getModel();
          Object[] ob = new  Object[4];
          
-         for (int i = 0; i < misListaProductos.size(); i++) {
-             ob[0] = misListaProductos.get(i).getNombre();
-             ob[1] = misListaProductos.get(i).getPrecio();
-             ob[2] = misListaProductos.get(i).getCantidadProductos();
-             ob[3] = misListaProductos.get(i).getTotalAPagar();
+         for (int i = 0; i < miListaProductos.size(); i++) {
+             ob[0] = miListaProductos.get(i).getNombre();
+             ob[1] = miListaProductos.get(i).getPrecio();
+             ob[2] = miListaProductos.get(i).getCantidadProductos();
+             ob[3] = miListaProductos.get(i).getTotalAPagar();
              modeloTabla.addRow(ob);
          }
          
@@ -208,15 +222,81 @@ public class ControladorProductos implements ActionListener{
 	}
 }
      
+     public void crearPDFII(ArrayList<ProductosModelo> lista, double tAPagar){
+         Font fontTitulo = new Font();
+         fontTitulo.setSize(15);
+         Document documento = new Document();
+         FileOutputStream archivo;
+         Paragraph titulo = new Paragraph("COTIZACIÓN DE PRODUCTOS", fontTitulo);
+         Font informacion = new Font();
+         
+         
+         try {
+             archivo = new FileOutputStream("CotizacionII.pdf");
+             PdfWriter.getInstance(documento, archivo);
+             documento.open();
+             titulo.setAlignment(1);
+             documento.add(titulo);
+             informacion.setSize(10);
+             informacion.setFamily(Font.FontFamily.COURIER.toString());
+             
+            // Este codigo genera una tabla de 4 columnas
+            PdfPTable table = new PdfPTable(4);
+            
+            table.addCell("PRODUCTO");
+            table.addCell("PRECIO");
+            table.addCell("CANTIDAD");             
+            table.addCell("SUBOTAL");
+            
+            for (int i = 0; i < lista.size(); i++) {
+                 table.addCell(lista.get(i).getNombre());
+                 table.addCell(String.valueOf(lista.get(i).getPrecio()));
+                 table.addCell(String.valueOf(lista.get(i).getCantidadProductos()));
+                 table.addCell(String.valueOf(lista.get(i).getTotalAPagar()));
+             }
+            
+             
+            // Indicamos cuantas columnas ocupa la celda
+            
+             documento.add(Chunk.NEWLINE);
+            // Agregamos la tabla al documento            
+            documento.add(table);
+            
+                    /*     
+             for (int i = 0; i < lista.size(); i++) {
+                 documento.add(new Paragraph("Nombre : " + lista.get(i).getNombre(), informacion));
+                 documento.add(new Paragraph("Precio : " + lista.get(i).getPrecio(), informacion));
+                 documento.add(new Paragraph("Cantidad : " + lista.get(i).getCantidadProductos(), informacion));
+                 documento.add(new Paragraph("Subtotal: " + lista.get(i).getTotalAPagar(), informacion));                 
+                 documento.add(new Paragraph("************************************************", informacion));
+
+             }      
+*/
+             documento.add(new Paragraph("TOTAL A PAGAR: " + tAPagar));
+             documento.add(new Paragraph("************************************************", informacion));
+             documento.add(Chunk.NEWLINE);
+             documento.add(new Paragraph("fecha de creación : " + LocalDateTime.now().toString(), informacion));
+             
+             documento.close();
+             
+             JOptionPane.showMessageDialog(null, "Archivo creado!");
+                    
+         } catch (Exception e) {
+         }
+         
+         
+     }
+     
+     
+     
+     
     public void Iniciar(){
         vi.setTitle("PRODUCTOS");
         vi.setLocationRelativeTo(null);
         
     }
 
-    private void While(boolean b) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
+   
     
     
 }

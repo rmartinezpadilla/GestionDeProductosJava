@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="Gesti_nDeProductos">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/dist/Gesti_nDeProductos.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
